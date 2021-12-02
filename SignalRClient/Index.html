@@ -10,27 +10,18 @@
             .withUrl("https://localhost:44305/ChatHub")
             .build();
 
-         connection.start()
-         
-            .then(() => console.log("Bağlantı başarıyla gerçekleştirildi."))
-            .catch(error => console.log("Bağlantı sağlanırken beklenmeyen bir hatayla karşılaşıldı."));
+         connection.start();
 
          $("button").click(() => {
             let message = $("#txtMessage").val();
             connection.invoke("SendMessageAsync", message)
-               .catch(error => console.log("Mesaj gönderilirken hata alınmıştır."));
+               .catch(error => console.log(rilirken hata alınmıştır."));
          });
-
-         console.log(connection.connectionState)
-
-
          connection.on("receiveMessage", message => {
             $("#messages").append(`${message}<br>`);
-            
          }); 
          connection.on("Notification", message => {
             alert(message);
-            
          }); 
     });
    </script>
