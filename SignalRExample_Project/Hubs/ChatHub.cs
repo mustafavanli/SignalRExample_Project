@@ -1,29 +1,55 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SignalRExample_Project.Hubs
 {
-    public class ChatHub:Hub
+    public class ChatHub : Hub
     {
-        static HashSet<string> users = new HashSet<string>();
+        static List<UserDto> users = new List<UserDto>();
         public async override Task OnConnectedAsync()
         {
-            users.Add(Context.ConnectionId);
-            await base.OnConnectedAsync();
-        }
-        public async Task SendMessageAsync(string message)
-        {
-            if (users.Contains(Context.ConnectionId))
+            users.Add(new UserDto
             {
-                await Clients.All.SendAsync("receiveMessage", Context.ConnectionId + ":" + message);
+                connectionId = Context.ConnectionId,
+                userId = Guid.NewGuid().ToString()
+            });
+
+            
+            await base.OnConnectedAsync();
+            // UserList Send
+            await Clients.Client(Context.ConnectionId).SendAsync("userList", users);
+            //
+        }
+        public async Task SendMessageAsync(string userId, string message)
+        {
+            if (users.Select(x => x.userId).Contains(userId))
+            {
+                var user = users.Where(x => x.userId == userId).FirstOrDefault();
+                if (user != null)
+                {
+                    await Clients.Client(user.connectionId).SendAsync("receiveMessage", message);
+                }
+
             }
         }
         public override Task OnDisconnectedAsync(Exception exception)
         {
-            users.Remove(Context.ConnectionId);
+            var user = users.Where(x => x.connectionId == Context.ConnectionId).FirstOrDefault();
+            if(user != null)
+            {
+                users.Remove(user);
+            }
             return base.OnDisconnectedAsync(exception);
         }
+    }
+
+    public class UserDto
+    {
+        public string userId { get; set; }
+        public string connectionId { get; set; }
     }
 }
