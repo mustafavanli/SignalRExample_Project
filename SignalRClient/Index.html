@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <script src="node_modules/@microsoft/signalr/dist/browser/signalr.min.js"></script>
+   <script src="node_modules/jquery/dist/jquery.min.js"></script>
+   <script>
+      $(document).ready(() => {
+         var connection = new signalR.HubConnectionBuilder()
+            .withUrl("https://localhost:44305/ChatHub")
+            .build();
+
+         connection.start()
+         
+            .then(() => console.log("Bağlantı başarıyla gerçekleştirildi."))
+            .catch(error => console.log("Bağlantı sağlanırken beklenmeyen bir hatayla karşılaşıldı."));
+
+         $("button").click(() => {
+            let message = $("#txtMessage").val();
+            connection.invoke("SendMessageAsync", message)
+               .catch(error => console.log("Mesaj gönderilirken hata alınmıştır."));
+         });
+
+         console.log(connection.connectionState)
+
+
+         connection.on("receiveMessage", message => {
+            $("#messages").append(`${message}<br>`);
+            
+         }); 
+         connection.on("Notification", message => {
+            alert(message);
+            
+         }); 
+    });
+   </script>
+</head>
+
+<body>
+   <input type="text" id="txtMessage"> <button>Gönder</button>
+   <ul id="messages">
+   </ul>
+</body>
+
+</html>
